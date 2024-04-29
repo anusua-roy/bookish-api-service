@@ -25,7 +25,7 @@ app.use((error, req, res, next) => {
 
 mongoose
   .connect(
-    "mongodb+srv://Anusua:Ag2PbIWueZHRZD1K@analytics.k6ev1.mongodb.net/bookish?retryWrites=true&w=majority"
+    "mongodb+srv://Anusua:Ag2PbIWueZHRZD1K@analytics.k6ev1.mongodb.net/bookish?retryWrites=true&w=majority&appName=analytics"
   )
   .then(() => {
     app.listen(5000);

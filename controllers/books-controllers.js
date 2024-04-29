@@ -22,18 +22,27 @@ const getAllBooks = async (req, res, next) => {
   });
 };
 
-const getBookById = (req, res, next) => {
-  //   const userId = req.params.uid;
-  //   const place = DUMMY_PLACES.find((p) => p.creator === userId);
-  //   if (!place) {
-  //     throw new HttpError(
-  //       "Could not find a place for the provided user id.",
-  //       404
-  //     );
-  //   }
-  //   res.json({
-  //     place,
-  //   });
+const getBookById = async (req, res, next) => {
+  const bookId = req.params.bid;
+
+  let book;
+  try {
+    book = await Book.findById(bookId);
+  } catch (err) {
+    return next(
+      new HttpError("Something went wrong, could not find a book.", 500)
+    );
+  }
+
+  if (!book) {
+    return next(
+      new HttpError("Could not find a book for the provided book id.", 404)
+    );
+  }
+
+  res.json({
+    book: book.toObject({ getters: true }),
+  });
 };
 
 const createBook = async (req, res, next) => {
@@ -59,19 +68,40 @@ const createBook = async (req, res, next) => {
   res.status(201).json({ book: createdBook });
 };
 
-const updateBook = (req, res, next) => {
-  //   const errors = validationResult(req);
-  //   if (!errors.isEmpty()) {
-  //     throw new HttpError("Invalid inputs passed, please check your data.", 422);
-  //   }
-  //   const { title, description } = req.body;
-  //   const placeId = req.params.pid;
-  //   const updatedPlace = { ...DUMMY_PLACES.find((p) => p.id === placeId) };
-  //   const placeIndex = DUMMY_PLACES.findIndex((p) => p.id === placeId);
-  //   updatedPlace.title = title;
-  //   updatedPlace.description = description;
-  //   DUMMY_PLACES[placeIndex] = updatedPlace;
-  //   res.status(200).json({ place: updatedPlace });
+const updateBook = async (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    throw new HttpError("Invalid inputs passed, please check your data.", 422);
+  }
+  const { title } = req.body;
+  const bookId = req.params.bid;
+
+  let book;
+  try {
+    book = await Book.findById(bookId);
+  } catch (err) {
+    return next(
+      new HttpError("Something went wrong, could not update book.", 500)
+    );
+  }
+
+  if (!book) {
+    return next(
+      new HttpError("Could not find a book for the provided book id.", 404)
+    );
+  }
+
+  book.title = title;
+
+  try {
+    await book.save();
+  } catch (err) {
+    return next(
+      new HttpError("Something went wrong, could not update book.", 500)
+    );
+  }
+
+  res.status(200).json({ book: book.toObject({ getters: true }) });
 };
 
 const deleteBook = (req, res, next) => {
